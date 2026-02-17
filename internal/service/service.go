@@ -43,8 +43,13 @@ func (s *Service) Stop() error {
 		Duration: now - currentEntry.Start,
 	}
 
-	s.Repo.AddEntry(entry)
-	s.Repo.DeleteCurrentEntry()
+	if err := s.Repo.AddEntry(entry); err != nil {
+		return err
+	}
+
+	if err := s.Repo.DeleteCurrentEntry(); err != nil {
+		return err
+	}
 
 	return nil
 }
