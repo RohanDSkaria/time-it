@@ -39,6 +39,7 @@ func Open() (*sql.DB, error) {
 	return db, nil
 }
 
+//go:embed migrations/*.sql
 var migrationFS embed.FS
 
 func runMigrations(db *sql.DB) error {
