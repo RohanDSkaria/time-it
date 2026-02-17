@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"embed"
 	"errors"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 
 	_ "modernc.org/sqlite"
 )
@@ -37,14 +39,22 @@ func Open() (*sql.DB, error) {
 	return db, nil
 }
 
+var migrationFS embed.FS
+
 func runMigrations(db *sql.DB) error {
 	driver, err := sqlite.WithInstance(db, &sqlite.Config{})
 	if err != nil {
 		return err
 	}
 
-	m, err := migrate.NewWithDatabaseInstance(
-		"file://internal/db/migrations",
+	source, err := iofs.New(migrationFS, "migrations")
+	if err != nil {
+		return err
+	}
+
+	m, err := migrate.NewWithInstance(
+		"iofs",
+		source,
 		"sqlite",
 		driver,
 	)
