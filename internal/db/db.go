@@ -45,7 +45,7 @@ func runMigrations(db *sql.DB) error {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
+		"file://internal/db/migrations",
 		"sqlite",
 		driver,
 	)
