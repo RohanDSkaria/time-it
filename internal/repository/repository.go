@@ -15,7 +15,7 @@ func New(db *sql.DB) *Repository {
 }
 
 func (r *Repository) GetCurrentEntry() (*model.CurrentEntry, error) {
-	row := r.DB.QueryRow("SELECT task, start_time FROM curren_entry WHERE id = 1")
+	row := r.DB.QueryRow("SELECT task, start_time FROM current_entry WHERE id = 1")
 
 	var c model.CurrentEntry
 	err := row.Scan(&c.Task, &c.Start)
