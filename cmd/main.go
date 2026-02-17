@@ -1,10 +1,10 @@
 package main
 
 import (
-	"os"
 	"github.com/RohanDSkaria/time-it/internal/cli"
+	"os"
 )
 
 func main() {
-	cli.Run(os.Args)	
+	cli.Run(os.Args)
 }

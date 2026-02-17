@@ -19,7 +19,7 @@ func New(repo *repository.Repository) *Service {
 func (s *Service) Start(task string) error {
 	if err := s.Stop(); err != nil {
 		return err
-	} 
+	}
 
 	now := time.Now().Unix()
 
@@ -37,9 +37,9 @@ func (s *Service) Stop() error {
 
 	now := time.Now().Unix()
 
-	entry := model.Entry {
-		Task: currentEntry.Task,
-		Start: currentEntry.Start,
+	entry := model.Entry{
+		Task:     currentEntry.Task,
+		Start:    currentEntry.Start,
 		Duration: now - currentEntry.Start,
 	}
 

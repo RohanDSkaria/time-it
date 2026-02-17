@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -22,7 +21,7 @@ func Open() (*sql.DB, error) {
 
 	path := filepath.Join(home, "time-it.db")
 
-	db, err := sql.Open("sqlite", path)	
+	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, err
 	}
