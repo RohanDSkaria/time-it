@@ -27,6 +27,9 @@ func Run(args []string) {
 	case "stop":
 		svc.Stop()
 
+	case "status":
+		svc.Status()
+
 	default:
 		svc.Start(cmd)
 	}

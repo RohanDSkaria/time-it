@@ -2,6 +2,7 @@ package service
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/RohanDSkaria/time-it/internal/model"
@@ -50,6 +51,23 @@ func (s *Service) Stop() error {
 	if err := s.Repo.DeleteCurrentEntry(); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (s *Service) Status() error {
+	currentEntry, err := s.Repo.GetCurrentEntry()
+	if err == sql.ErrNoRows {
+		fmt.Println("No task is currently being timed.")
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Current task: %s\n", currentEntry.Task)
+	fmt.Printf("Started at: %s\n", time.Unix(currentEntry.Start, 0).Format(time.RFC1123))
+	fmt.Printf("Elapsed time: %s\n", time.Since(time.Unix(currentEntry.Start, 0)).Truncate(time.Second))
 
 	return nil
 }
