@@ -46,3 +46,22 @@ func (r *Repository) AddEntry(e model.Entry) error {
 	)
 	return err
 }
+
+func (r *Repository) GetAllEntries() ([]model.Entry, error) {
+	rows, err := r.DB.Query("SELECT task, start_time, duration FROM entries")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var entries []model.Entry
+	for rows.Next() {
+		var e model.Entry
+		if err := rows.Scan(&e.Task, &e.Start, &e.Duration); err != nil {
+			return nil, err
+		}
+		entries = append(entries, e)
+	}
+
+	return entries, nil
+}

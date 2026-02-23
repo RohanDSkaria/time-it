@@ -30,6 +30,9 @@ func Run(args []string) {
 	case "status":
 		svc.Status()
 
+	case "logs":
+		svc.Logs()
+
 	default:
 		svc.Start(cmd)
 	}

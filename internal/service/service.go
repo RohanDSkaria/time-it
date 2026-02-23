@@ -71,3 +71,24 @@ func (s *Service) Status() error {
 
 	return nil
 }
+
+func (s *Service) Logs() error {
+	entries, err := s.Repo.GetAllEntries()
+	if err != nil {
+		return err
+	}
+
+	if len(entries) == 0 {
+		fmt.Println("No entries found.")
+		return nil
+	}
+
+	for _, entry := range entries {
+		fmt.Printf("Task: %s\n", entry.Task)
+		fmt.Printf("Start: %s\n", time.Unix(entry.Start, 0).Format(time.RFC1123))
+		fmt.Printf("Duration: %s\n", time.Duration(entry.Duration)*time.Second)
+		fmt.Println()
+	}
+
+	return nil
+}
