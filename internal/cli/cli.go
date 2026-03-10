@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/RohanDSkaria/time-it/internal/db"
+	"github.com/RohanDSkaria/time-it/internal/notion"
 	"github.com/RohanDSkaria/time-it/internal/repository"
 	"github.com/RohanDSkaria/time-it/internal/service"
 )
@@ -20,6 +21,7 @@ func Run(args []string) {
 
 	repo := repository.New(db)
 	svc := service.New(repo)
+	notionClient := notion.New()
 	cmd := args[1]
 
 	switch cmd {
@@ -33,8 +35,14 @@ func Run(args []string) {
 	case "logs":
 		svc.Logs()
 
+	case "todos":
+		log.Printf("Fetching todos from Notion...")
+		if err := notionClient.GetTodos(); err != nil {
+			log.Printf("Error fetching todos: %v", err)
+		}
+
 	default:
 		svc.Start(cmd)
-	}
 
+	}
 }
