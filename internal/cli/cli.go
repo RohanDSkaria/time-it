@@ -41,6 +41,9 @@ func Run(args []string) {
 			log.Printf("Error fetching todos: %v", err)
 		}
 
+	case "logs-all":
+		svc.LogsAll()
+
 	default:
 		svc.Start(cmd)
 
