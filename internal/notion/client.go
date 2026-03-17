@@ -19,7 +19,7 @@ type Config struct {
 func New() *Config {
 	home, _ := os.UserHomeDir()
 	path := home + "/.config/time-it/config.json"
-	
+
 	data, _ := os.ReadFile(path)
 	var cfg Config
 	json.Unmarshal(data, &cfg)
@@ -29,13 +29,13 @@ func New() *Config {
 
 func getTodos(c *Config) (model.BlockResponse, error) {
 	url := fmt.Sprintf("https://api.notion.com/v1/blocks/%s/children?page_size=1", c.ParentPageID)
-	
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return model.BlockResponse{}, err
 	}
 
-	req.Header.Set("Authorization", "Bearer " + c.NotionIntegrationSecret)
+	req.Header.Set("Authorization", "Bearer "+c.NotionIntegrationSecret)
 	req.Header.Set("Notion-Version", "2025-09-03")
 
 	client := &http.Client{}
@@ -58,8 +58,8 @@ func getTodos(c *Config) (model.BlockResponse, error) {
 	if err != nil {
 		return model.BlockResponse{}, err
 	}
-	
-	req.Header.Set("Authorization", "Bearer " + c.NotionIntegrationSecret)
+
+	req.Header.Set("Authorization", "Bearer "+c.NotionIntegrationSecret)
 	req.Header.Set("Notion-Version", "2025-09-03")
 
 	resp, err = client.Do(req)
@@ -80,8 +80,8 @@ func getTodos(c *Config) (model.BlockResponse, error) {
 	if err != nil {
 		return model.BlockResponse{}, err
 	}
-	
-	req.Header.Set("Authorization", "Bearer " + c.NotionIntegrationSecret)
+
+	req.Header.Set("Authorization", "Bearer "+c.NotionIntegrationSecret)
 	req.Header.Set("Notion-Version", "2025-09-03")
 
 	resp, err = client.Do(req)
@@ -89,7 +89,7 @@ func getTodos(c *Config) (model.BlockResponse, error) {
 		return model.BlockResponse{}, err
 	}
 	defer resp.Body.Close()
-	
+
 	body, _ = io.ReadAll(resp.Body)
 
 	if err := json.Unmarshal(body, &todos); err != nil {
@@ -149,8 +149,8 @@ func markTodo(c *Config, id int, checked bool) error {
 	if err != nil {
 		return err
 	}
-	
-	req.Header.Set("Authorization", "Bearer " + c.NotionIntegrationSecret)
+
+	req.Header.Set("Authorization", "Bearer "+c.NotionIntegrationSecret)
 	req.Header.Set("Notion-Version", "2025-09-03")
 	req.Header.Set("Content-Type", "application/json")
 

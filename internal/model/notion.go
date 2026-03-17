@@ -5,16 +5,15 @@ type Todo struct {
 }
 
 type RichText struct {
-	Todo []Todo `json:"rich_text"`
+	Todo    []Todo `json:"rich_text"`
 	Checked bool   `json:"checked"`
 }
 
 type Block struct {
-	Id 	 string    `json:"id"`
+	Id       string   `json:"id"`
 	RichText RichText `json:"to_do"`
 }
 
 type BlockResponse struct {
-    Results []Block `json:"results"`
+	Results []Block `json:"results"`
 }
-

@@ -45,7 +45,7 @@ func Run(args []string) {
 
 	case cmd == "logs-all":
 		svc.LogsAll()
-	
+
 	case strings.HasPrefix(cmd, "mark-"):
 		n, err := strconv.Atoi(strings.TrimPrefix(cmd, "mark-"))
 		if err != nil {
@@ -63,6 +63,7 @@ func Run(args []string) {
 			log.Printf("Invalid unmark command: %v", err)
 			return
 		}
+		log.Printf("Unmarking todo %d in Notion...", n)
 		if err := notionClient.UnmarkTodo(n); err != nil {
 			log.Printf("Error unmarking todo: %v", err)
 		}
