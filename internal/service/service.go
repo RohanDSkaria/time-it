@@ -125,3 +125,47 @@ func (s *Service) LogsAll() error {
 
 	return nil
 }
+
+func (s *Service) Stats() error {
+	entries, err := s.Repo.GetAllEntries()
+	if err != nil {
+		return err
+	}
+
+	if len(entries) == 0 {
+		fmt.Println("No entries found.")
+		return nil
+	}
+
+	currentEntry, err := s.Repo.GetCurrentEntry()
+	if err == nil {
+		entries = append(entries, model.Entry{
+			Task:     currentEntry.Task,
+			Start:    currentEntry.Start,
+			Duration: time.Now().Unix() - currentEntry.Start,
+		})
+	}
+
+	taskDurations := make(map[string]time.Duration)
+
+	cutoff := time.Now().Add(-24 * time.Hour).Unix()
+
+	idx := 0
+	for i := len(entries) - 1; i >= 0; i-- {
+		if entries[i].Start < cutoff {
+			idx = i + 1
+			break
+		}
+	}
+
+	for i := idx; i < len(entries); i++ {
+		entry := entries[i]
+		taskDurations[entry.Task] += time.Duration(entry.Duration) * time.Second
+	}
+
+	for task, duration := range taskDurations {
+		fmt.Printf("%s: %s\n", task, duration)
+	}
+
+	return nil
+}

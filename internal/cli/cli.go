@@ -68,6 +68,9 @@ func Run(args []string) {
 			log.Printf("Error unmarking todo: %v", err)
 		}
 
+	case cmd == "stats":
+		svc.Stats()
+
 	default:
 		svc.Start(cmd)
 
