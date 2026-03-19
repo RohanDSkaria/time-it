@@ -21,7 +21,7 @@ func Open() (*sql.DB, error) {
 		return nil, err
 	}
 
-	path := filepath.Join(home, "time-it.db")
+	path := filepath.Join(home, "time-it-db/time-it.db")
 
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
