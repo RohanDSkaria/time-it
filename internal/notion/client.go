@@ -7,9 +7,89 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/RohanDSkaria/time-it/internal/model"
 )
+
+type cache struct {
+	MonthKey    string `json:"month_key"`
+	MonthPageID string `json:"month_page_id"`
+	DayKey      string `json:"day_key"`
+	DayPageID   string `json:"day_page_id"`
+}
+
+func cachePath() string {
+	home, _ := os.UserHomeDir()
+	return home + "/.config/time-it/cache.json"
+}
+
+func getPageID(format string, isMonth bool) string {
+	key := time.Now().Format(format)
+
+	data, err := os.ReadFile(cachePath())
+	if err != nil {
+		return ""
+	}
+
+	var c cache
+	if err := json.Unmarshal(data, &c); err != nil {
+		return ""
+	}
+
+	if isMonth {
+		if c.MonthKey == key {
+			return c.MonthPageID
+		}
+	} else {
+		if c.DayKey == key {
+			return c.DayPageID
+		}
+	}
+
+	return ""
+}
+
+func saveMonthPageID(pageID string) {
+	var c cache
+
+	data, err := os.ReadFile(cachePath())
+	if err != nil || len(data) == 0 {
+		c = cache{
+			MonthKey:    time.Now().Format("2006-01"),
+			MonthPageID: pageID,
+		}
+	} else {
+		json.Unmarshal(data, &c)
+		c.MonthKey = time.Now().Format("2006-01")
+		c.MonthPageID = pageID
+	}
+
+	data, err = json.Marshal(c)
+	if err != nil {
+		return
+	}
+
+	os.WriteFile(cachePath(), data, 0644)
+}
+
+func saveDayPageID(pageID string) {
+	var c cache
+
+	data, _ := os.ReadFile(cachePath())
+
+	json.Unmarshal(data, &c)
+
+	c.DayKey = time.Now().Format("2006-01-02")
+	c.DayPageID = pageID
+
+	data, err := json.Marshal(c)
+	if err != nil {
+		return
+	}
+
+	os.WriteFile(cachePath(), data, 0644)
+}
 
 type Config struct {
 	NotionIntegrationSecret string `json:"notion_integration_secret"`
@@ -27,8 +107,60 @@ func New() *Config {
 	return &cfg
 }
 
+func getBlockID(parentPageID, notionIntegrationSecret string) (string, error) {
+	url := fmt.Sprintf("https://api.notion.com/v1/blocks/%s/children?page_size=1", parentPageID)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+notionIntegrationSecret)
+	req.Header.Set("Notion-Version", "2025-09-03")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	var blockRes model.BlockResponse
+	if err := json.Unmarshal(body, &blockRes); err != nil {
+		return "", err
+	}
+
+	return blockRes.Results[0].Id, nil
+}
+
 func getTodos(c *Config) (model.BlockResponse, error) {
-	url := fmt.Sprintf("https://api.notion.com/v1/blocks/%s/children?page_size=1", c.ParentPageID)
+	dayPageID := getPageID("2006-01-02", false)
+
+	if dayPageID == "" {
+		monthPageID := getPageID("2006-01", true)
+
+		if monthPageID == "" {
+			id, err := getBlockID(c.ParentPageID, c.NotionIntegrationSecret)
+			if err != nil {
+				return model.BlockResponse{}, err
+			}
+
+			monthPageID = id
+			saveMonthPageID(monthPageID)
+		}
+
+		id, err := getBlockID(monthPageID, c.NotionIntegrationSecret)
+		if err != nil {
+			return model.BlockResponse{}, err
+		}
+
+		dayPageID = id
+		saveDayPageID(dayPageID)
+	}
+
+	url := fmt.Sprintf("https://api.notion.com/v1/blocks/%s/children", dayPageID)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -43,55 +175,11 @@ func getTodos(c *Config) (model.BlockResponse, error) {
 	if err != nil {
 		return model.BlockResponse{}, err
 	}
-
-	body, _ := io.ReadAll(resp.Body)
-	resp.Body.Close()
-
-	var monthBlockRes, dayBlockRes, todos model.BlockResponse
-	if err := json.Unmarshal(body, &monthBlockRes); err != nil {
-		return model.BlockResponse{}, err
-	}
-
-	url = fmt.Sprintf("https://api.notion.com/v1/blocks/%s/children?page_size=1", monthBlockRes.Results[0].Id)
-
-	req, err = http.NewRequest("GET", url, nil)
-	if err != nil {
-		return model.BlockResponse{}, err
-	}
-
-	req.Header.Set("Authorization", "Bearer "+c.NotionIntegrationSecret)
-	req.Header.Set("Notion-Version", "2025-09-03")
-
-	resp, err = client.Do(req)
-	if err != nil {
-		return model.BlockResponse{}, err
-	}
-
-	body, _ = io.ReadAll(resp.Body)
-	resp.Body.Close()
-
-	if err := json.Unmarshal(body, &dayBlockRes); err != nil {
-		return model.BlockResponse{}, err
-	}
-
-	url = fmt.Sprintf("https://api.notion.com/v1/blocks/%s/children", dayBlockRes.Results[0].Id)
-
-	req, err = http.NewRequest("GET", url, nil)
-	if err != nil {
-		return model.BlockResponse{}, err
-	}
-
-	req.Header.Set("Authorization", "Bearer "+c.NotionIntegrationSecret)
-	req.Header.Set("Notion-Version", "2025-09-03")
-
-	resp, err = client.Do(req)
-	if err != nil {
-		return model.BlockResponse{}, err
-	}
 	defer resp.Body.Close()
 
-	body, _ = io.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
+	var todos model.BlockResponse
 	if err := json.Unmarshal(body, &todos); err != nil {
 		return model.BlockResponse{}, err
 	}
