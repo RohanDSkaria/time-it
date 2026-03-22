@@ -236,6 +236,7 @@ func markTodo(c *Config, id int, checked bool) error {
 	for i, block := range todos.Results {
 		if i == id {
 			blockID = block.Id
+			todos.Results[i].RichText.Checked = checked
 			break
 		}
 	}
@@ -253,6 +254,17 @@ func markTodo(c *Config, id int, checked bool) error {
 
 	client := &http.Client{}
 	_, err = client.Do(req)
+
+	for i, block := range todos.Results {
+		checkbox := "[ ]"
+		if block.RichText.Checked {
+			checkbox = "[x]"
+		}
+		fmt.Print(i, " - ")
+		fmt.Print(block.RichText.Todo[0].Title + " ")
+		fmt.Println(checkbox)
+	}
+
 	return err
 }
 
