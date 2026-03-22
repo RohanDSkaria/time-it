@@ -61,6 +61,11 @@ func saveMonthPageID(pageID string) {
 		}
 	} else {
 		json.Unmarshal(data, &c)
+
+		if c.MonthPageID == pageID {
+			return
+		}
+
 		c.MonthKey = time.Now().Format("2006-01")
 		c.MonthPageID = pageID
 	}
@@ -79,6 +84,10 @@ func saveDayPageID(pageID string) {
 	data, _ := os.ReadFile(cachePath())
 
 	json.Unmarshal(data, &c)
+
+	if c.DayPageID == pageID {
+		return
+	}
 
 	c.DayKey = time.Now().Format("2006-01-02")
 	c.DayPageID = pageID
